@@ -18,7 +18,9 @@ for (const path of ["/", "/about", "/contact", "/support"]) {
     const html = await response.text();
     expect(response.status).toBe(200);
     expect(html).not.toContain("Internal server error");
-    expect(html).toMatch(/<\/html>\s*$/);
+    // vercel previews append their feedback script after the completed document.
+    const documentHtml = html.replace(/<script\b[^>]*src="https:\/\/vercel\.live\/[^" ]*"[^>]*><\/script>\s*$/, "");
+    expect(documentHtml).toMatch(/<\/html>\s*$/);
     const footer = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0] ?? "";
     expect(footer.match(/<svg\b/g)).toHaveLength(8);
   });
