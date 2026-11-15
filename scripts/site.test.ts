@@ -5,7 +5,7 @@ const site = process.env.SITE_URL ?? "http://localhost:3000";
 test("home offers useful destinations in the initial HTML before the 3D scene loads", async () => {
   const html = await (await fetch(new URL("/", site))).text();
   expect(html).toContain('aria-label="Explore my work"');
-  expect(html).toContain("I build software, share what I learn");
+  expect(html).toContain("Builder and content creator helping people master the skills AI will never replace.");
   expect(html).toContain('href="https://notes.ramimaalouf.com"');
 });
 
