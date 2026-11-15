@@ -17,7 +17,7 @@ import { externalFooterLinks } from "@lib/constants";
           rel="noopener noreferrer"
           class={`w-5 h-5 sm:w-6 sm:h-6 ${name.toLowerCase().includes("substack") && "p-0.5"}`}
         >
-          <Icon name={iconName} />
+          <Icon name={iconName.replace(":", "/")} />
         </a>
       ))
     }
