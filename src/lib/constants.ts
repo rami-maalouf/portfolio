@@ -47,28 +47,22 @@ export const externalLinks = {
 
 export const externalFooterLinks = [
 	{
-		label: "YouTube",
-		iconName: "ant-design:youtube-filled",
-		href: externalLinks.youtubeSub,
-		name: "Link to my Youtube",
-	},
-	{
-		label: "Substack",
-		iconName: "simple-icons:substack",
-		href: externalLinks.substack,
-		name: "Link to my Substack",
-	},
-	{
 		label: "Instagram",
 		iconName: "mdi:instagram",
 		href: externalLinks.instagram,
 		name: "Link to my Instagram",
 	},
 	{
-		label: "TikTok",
-		iconName: "ic:baseline-tiktok",
-		href: externalLinks.tiktok,
-		name: "Link to my TikTok",
+		label: "LinkedIn",
+		iconName: "mdi:linkedin",
+		href: externalLinks.linkedin,
+		name: "Link to my LinkedIn",
+	},
+	{
+		label: "YouTube",
+		iconName: "ant-design:youtube-filled",
+		href: externalLinks.youtubeSub,
+		name: "Link to my Youtube",
 	},
 	{
 		label: "X",
@@ -77,16 +71,22 @@ export const externalFooterLinks = [
 		name: "Link to my X",
 	},
 	{
+		label: "Substack",
+		iconName: "simple-icons:substack",
+		href: externalLinks.substack,
+		name: "Link to my Substack",
+	},
+	{
+		label: "TikTok",
+		iconName: "ic:baseline-tiktok",
+		href: externalLinks.tiktok,
+		name: "Link to my TikTok",
+	},
+	{
 		label: "GitHub",
 		iconName: "mdi:github",
 		href: externalLinks.github,
 		name: "Link to my Github",
-	},
-	{
-		label: "LinkedIn",
-		iconName: "mdi:linkedin",
-		href: externalLinks.linkedin,
-		name: "Link to my LinkedIn",
 	},
 	{
 		label: "Email",
