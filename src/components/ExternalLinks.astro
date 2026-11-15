@@ -2,15 +2,15 @@
 import { Icon } from "astro-icon";
 import { externalFooterLinks } from "@lib/constants";
 
-const labels = ["GitHub", "YouTube", "LinkedIn", "Email", "Strava", "TikTok", "X", "Instagram", "Substack"];
+const visibleLinks = externalFooterLinks.filter((link) => !link.hidden);
 ---
 
 <footer class="social-footer" aria-label="Social links">
-  <social-dock id="external-links">
+  <social-dock id="external-links" style={`--item-count: ${visibleLinks.length}`}>
     {
-      externalFooterLinks.map(({ name, iconName, href }, index) => (
+      visibleLinks.map(({ name, label, iconName, href }) => (
         <a href={href} target="_blank" aria-label={name} rel="noopener noreferrer" class="dock-link">
-          <span class="dock-label" aria-hidden="true">{labels[index]}</span>
+          <span class="dock-label" aria-hidden="true">{label}</span>
           <span class:list={["dock-icon", { "dock-icon-inset": iconName === "simple-icons:substack" }]}>
             <Icon name={iconName.replace(":", "/")} />
           </span>
@@ -181,7 +181,7 @@ const labels = ["GitHub", "YouTube", "LinkedIn", "Email", "Strava", "TikTok", "X
     transform: translateX(-50%) translateY(0);
   }
   @media (max-width: 679px) {
-    social-dock { --base-size: clamp(24px, calc((100vw - 72px) / 9), 44px); gap: 2px; padding-inline: 6px; margin-bottom: 8px; }
+    social-dock { --base-size: clamp(24px, calc((100vw - 72px) / var(--item-count)), 44px); gap: 2px; padding-inline: 6px; margin-bottom: 8px; }
     .dock-link { padding: 6px; }
     social-dock::before { border-radius: 16px; }
   }

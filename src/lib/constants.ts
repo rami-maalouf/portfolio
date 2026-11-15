@@ -47,49 +47,59 @@ export const externalLinks = {
 
 export const externalFooterLinks = [
 	{
-		iconName: "mdi:github",
-		href: externalLinks.github,
-		name: "Link to my Github",
-	},
-	{
+		label: "YouTube",
 		iconName: "ant-design:youtube-filled",
 		href: externalLinks.youtubeSub,
 		name: "Link to my Youtube",
 	},
 	{
-		iconName: "mdi:linkedin",
-		href: externalLinks.linkedin,
-		name: "Link to my LinkedIn",
+		label: "Substack",
+		iconName: "simple-icons:substack",
+		href: externalLinks.substack,
+		name: "Link to my Substack",
 	},
 	{
-		iconName: "ic:round-email",
-		href: externalLinks.email,
-		name: "Link to Email me",
-	},
-	{
-		iconName: "simple-icons:strava",
-		href: externalLinks.strava,
-		name: "Link to my Strava",
-	},
-	{
-		iconName: "ic:baseline-tiktok",
-		href: externalLinks.tiktok,
-		name: "Link to my TikTok",
-	},
-	{
-		iconName: "mdi:twitter",
-		href: externalLinks.x,
-		name: "Link to my X",
-	},
-	{
+		label: "Instagram",
 		iconName: "mdi:instagram",
 		href: externalLinks.instagram,
 		name: "Link to my Instagram",
 	},
 	{
-		iconName: "simple-icons:substack",
-		href: externalLinks.substack,
-		name: "Link to my Substack",
+		label: "TikTok",
+		iconName: "ic:baseline-tiktok",
+		href: externalLinks.tiktok,
+		name: "Link to my TikTok",
+	},
+	{
+		label: "X",
+		iconName: "simple-icons:x",
+		href: externalLinks.x,
+		name: "Link to my X",
+	},
+	{
+		label: "GitHub",
+		iconName: "mdi:github",
+		href: externalLinks.github,
+		name: "Link to my Github",
+	},
+	{
+		label: "LinkedIn",
+		iconName: "mdi:linkedin",
+		href: externalLinks.linkedin,
+		name: "Link to my LinkedIn",
+	},
+	{
+		label: "Email",
+		iconName: "ic:round-email",
+		href: externalLinks.email,
+		name: "Link to Email me",
+	},
+	{
+		label: "Strava",
+		iconName: "simple-icons:strava",
+		href: externalLinks.strava,
+		name: "Link to my Strava",
+		hidden: true,
 	},
 ];
 

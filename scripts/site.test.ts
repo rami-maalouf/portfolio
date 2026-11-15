@@ -10,6 +10,6 @@ for (const path of ["/", "/about", "/contact", "/support"]) {
     expect(html).not.toContain("Internal server error");
     expect(html).toMatch(/<\/html>\s*$/);
     const footer = html.match(/<footer\b[\s\S]*?<\/footer>/)?.[0] ?? "";
-    expect(footer.match(/<svg\b/g)).toHaveLength(9);
+    expect(footer.match(/<svg\b/g)).toHaveLength(8);
   });
 }
