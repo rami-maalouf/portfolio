@@ -4,13 +4,12 @@ import { externalLinks } from "@lib/constants";
 
 <progressive-hero>
   <div class="hero-intro" data-intro>
-    <p class="hero-eyebrow">Build. Share. Connect.</p>
     <h1>Hi, I'm <span>Rami.</span></h1>
-    <p class="hero-description">I build software, share what I learn, and write about life along the way.</p>
+    <p class="hero-description">Builder and content creator helping people master the skills AI will never replace.</p>
     <nav class="hero-links" aria-label="Explore my work">
       <a href={externalLinks.youtube} target="_blank" rel="noopener noreferrer"><span>Watch</span>YouTube <span aria-hidden="true">↗</span></a>
       <a href={externalLinks.github} target="_blank" rel="noopener noreferrer"><span>Build</span>GitHub <span aria-hidden="true">↗</span></a>
-      <a href={externalLinks.notes} target="_blank" rel="noopener noreferrer"><span>Read</span>My notes <span aria-hidden="true">↗</span></a>
+      <a href={externalLinks.notes} target="_blank" rel="noopener noreferrer"><span>Read</span>My journal <span aria-hidden="true">↗</span></a>
     </nav>
     <div class="scene-control">
       <button type="button" data-start hidden>Explore in 3D <span aria-hidden="true">↗</span></button>
@@ -101,7 +100,6 @@ import { externalLinks } from "@lib/constants";
   progressive-hero { display: grid; position: relative; min-height: calc(100svh - 10rem); width: 100%; }
   .hero-intro { align-self: center; width: min(100%, 44rem); margin: 0 auto; padding: 3rem 0 5rem; }
   .hero-intro[hidden] { display: none; }
-  .hero-eyebrow { color: #a1b8bc; font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 1rem; }
   h1 { font-size: clamp(3.4rem, 9vw, 6.5rem); font-weight: 750; line-height: 1.05; letter-spacing: -.055em; color: #eefcff; }
   h1 span { color: #67e8f9; }
   .hero-description { margin-top: 1.5rem; max-width: 34rem; font-size: clamp(1.05rem, 2.2vw, 1.3rem); line-height: 1.65; color: #b6c6ca; }
