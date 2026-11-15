@@ -55,11 +55,16 @@ export default function TopText(props: any) {
     setBrightMatcap(brightenMatcapTexture(matcap));
   }, [matcap, brightMatcap]);
 
-  const [isCursorActive, setIsCursorActive] = useState(false);
+  const cursor = useRef({ x: 0, y: 0, active: false });
+  const targetRef = useRef(new Vector3(0, TEXT_Y_POS, 0));
 
   useEffect(() => {
-    const handleMouseMove = () => {
-      setIsCursorActive(true);
+    const handleMouseMove = (event: MouseEvent) => {
+      cursor.current = {
+        x: event.clientX - window.innerWidth / 2,
+        y: event.clientY - window.innerHeight / 2,
+        active: true,
+      };
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -69,28 +74,12 @@ export default function TopText(props: any) {
     };
   }, []);
 
-  let target = new Vector3(0, TEXT_Y_POS, 0);
-  let mouseX = 0,
-    mouseY = 0;
-
-  // useEffect(() => {
-  const windowHalfX = window.innerWidth / 2; // coz the text is in the middle
-  const windowHalfY = window.innerHeight / 2; // coz the text is at the top
-  function onDocumentMouseMove(event: MouseEvent) {
-    mouseX = event.clientX - windowHalfX;
-    mouseY = event.clientY - windowHalfY;
-  }
-
-  window.addEventListener('mousemove', onDocumentMouseMove);
-  //   return () => {
-  //     window.removeEventListener("mousemove", onDocumentMouseMove);
-  //   };
-  // }, []);
-
   const reactivity = 0.02;
   const effectOnX = 0.0075;
   const effectOnY = 0.0075;
   useFrame(({ camera }) => {
+    const target = targetRef.current;
+    const { x: mouseX, y: mouseY, active: isCursorActive } = cursor.current;
     target.x += (mouseX * effectOnX - target.x) * reactivity;
     if (!isCursorActive) {
       target.y = TEXT_Y_POS;
