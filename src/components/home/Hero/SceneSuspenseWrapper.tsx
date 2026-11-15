@@ -3,15 +3,17 @@ import "@lib/setupThree";
 import HeroScene from "./HeroScene";
 import Loading from "./Loading";
 
-interface HeroSceneProps extends HTMLAttributes<HTMLDivElement> {
+interface HeroSceneProps extends Omit<HTMLAttributes<HTMLDivElement>, "onError"> {
   fallback?: JSX.Element;
+  onReady?: () => void;
+  onError?: () => void;
 }
 
 interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class SceneErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+class SceneErrorBoundary extends Component<{ children: ReactNode; onError?: () => void }, ErrorBoundaryState> {
   state: ErrorBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: Error) {
@@ -20,6 +22,7 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundar
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("Hero scene failed to load:", error, info);
+    this.props.onError?.();
   }
 
   render() {
@@ -36,12 +39,12 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundar
 }
 
 export default function SceneSuspenseWrapper(props: HeroSceneProps) {
-  const { children, fallback = null, ...rest } = props;
+  const { children, fallback, onError, onReady, ...rest } = props;
   return (
-    <SceneErrorBoundary>
+    <SceneErrorBoundary onError={onError}>
       <div className="relative h-full w-full">
-        <Suspense fallback={<Loading />}>
-          <HeroScene {...rest} />
+        <Suspense fallback={onReady ? null : (fallback ?? <Loading />)}>
+          <HeroScene {...rest} onReady={onReady} />
         </Suspense>
       </div>
     </SceneErrorBoundary>

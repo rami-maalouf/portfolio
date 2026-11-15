@@ -1,33 +1,119 @@
 ---
-import SceneSuspenseWrapper from "@components/home/Hero/SceneSuspenseWrapper";
-import Loading from "./Loading.astro";
-const props = Astro.props;
+import { externalLinks } from "@lib/constants";
 ---
 
-<section class="w-full">
-  <link rel="preload" href="/draco/draco_decoder.wasm" as="fetch" crossorigin />
-  <link rel="preload" href="/models/compressed-book.glb" as="fetch" crossorigin />
-  <div class="scene cursor-none relative h-[calc(100vh-5rem)] w-full">
-    <SceneSuspenseWrapper client:idle {...props} />
+<progressive-hero>
+  <div class="hero-intro" data-intro>
+    <p class="hero-eyebrow">Build. Share. Connect.</p>
+    <h1>Hi, I'm <span>Rami.</span></h1>
+    <p class="hero-description">I build software, share what I learn, and write about life along the way.</p>
+    <nav class="hero-links" aria-label="Explore my work">
+      <a href={externalLinks.youtube} target="_blank" rel="noopener noreferrer"><span>Watch</span>YouTube <span aria-hidden="true">↗</span></a>
+      <a href={externalLinks.github} target="_blank" rel="noopener noreferrer"><span>Build</span>GitHub <span aria-hidden="true">↗</span></a>
+      <a href={externalLinks.notes} target="_blank" rel="noopener noreferrer"><span>Read</span>My notes <span aria-hidden="true">↗</span></a>
+    </nav>
+    <div class="scene-control">
+      <button type="button" data-start hidden>Explore in 3D <span aria-hidden="true">↗</span></button>
+      <p data-status role="status"></p>
+    </div>
   </div>
-
-  <Loading class="loadingPage hidden" />
-</section>
+  <div class="hero-scene" data-scene aria-hidden="true"></div>
+</progressive-hero>
 
 <script>
-  const scene = document.querySelector(".scene") as HTMLDivElement;
-  const loadingPage = document.querySelector(".loadingPage") as HTMLDivElement;
-  if (!scene || !loadingPage) {
-    throw new Error("Missing scene or loadingPage");
+  class ProgressiveHero extends HTMLElement {
+    private cleanup?: () => void;
+
+    connectedCallback() {
+      const button = this.querySelector<HTMLButtonElement>("[data-start]")!;
+      const intro = this.querySelector<HTMLElement>("[data-intro]")!;
+      const scene = this.querySelector<HTMLElement>("[data-scene]")!;
+      const status = this.querySelector<HTMLElement>("[data-status]")!;
+      const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+      const manual = connection?.saveData || ["slow-2g", "2g"].includes(connection?.effectiveType ?? "") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let active = true;
+      let started = false;
+      let explicitlyRequested = false;
+      let dispose: (() => void) | undefined;
+      let idle: number | undefined;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let frame = 0;
+
+      const start = async (event?: Event) => {
+        if (started || !active) return;
+        explicitlyRequested = event?.type === "click";
+        started = true;
+        button.hidden = true;
+        status.textContent = "Loading the 3D experience. All links are ready to use.";
+        try {
+          const { mountScene } = await import("./mountScene");
+          if (!active) return;
+          dispose = mountScene(scene, {
+            onReady: () => {
+              if (!active) return;
+              status.textContent = "The 3D experience is ready.";
+              // keep a focused link available until the visitor moves away.
+              const reveal = () => {
+                if (!active || (!explicitlyRequested && (intro.contains(document.activeElement) || intro.matches(":hover")))) return;
+                intro.hidden = true;
+                scene.removeAttribute("aria-hidden");
+                this.setAttribute("data-ready", "");
+              };
+              reveal();
+              intro.addEventListener("focusout", () => queueMicrotask(reveal), { signal: controller.signal });
+              intro.addEventListener("pointerleave", reveal, { signal: controller.signal });
+            },
+            onError: () => {
+              if (active) status.textContent = "The 3D experience is unavailable. You can still explore all my links.";
+            },
+          });
+        } catch {
+          if (active) status.textContent = "The 3D experience is unavailable. You can still explore all my links.";
+        }
+      };
+      const controller = new AbortController();
+      button.hidden = false;
+      button.addEventListener("click", start, { signal: controller.signal });
+      if (!manual) {
+        // give the intro, navigation, and dock a paint before downloading the scene.
+        frame = requestAnimationFrame(() => {
+          frame = requestAnimationFrame(() => {
+            if ("requestIdleCallback" in window) idle = window.requestIdleCallback(() => void start(), { timeout: 1500 });
+            else timer = setTimeout(start, 200);
+          });
+        });
+      }
+      this.cleanup = () => {
+        active = false;
+        controller.abort();
+        cancelAnimationFrame(frame);
+        if (idle !== undefined) window.cancelIdleCallback(idle);
+        clearTimeout(timer);
+        dispose?.();
+      };
+    }
+    disconnectedCallback() { this.cleanup?.(); }
   }
-
-  loadingPage.style.opacity = "1";
-  loadingPage.style.display = "block";
-
-  import("@components/home/Hero/SceneSuspenseWrapper").then(() => {
-    scene.style.display = "block";
-    setTimeout(() => {
-      loadingPage.style.display = "none";
-    }, 300);
-  });
+  if (!customElements.get("progressive-hero")) customElements.define("progressive-hero", ProgressiveHero);
 </script>
+
+<style>
+  progressive-hero { display: grid; position: relative; min-height: calc(100svh - 10rem); width: 100%; }
+  .hero-intro { align-self: center; width: min(100%, 44rem); margin: 0 auto; padding: 3rem 0 5rem; }
+  .hero-intro[hidden] { display: none; }
+  .hero-eyebrow { color: #a1b8bc; font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 1rem; }
+  h1 { font-size: clamp(3.4rem, 9vw, 6.5rem); font-weight: 750; line-height: 1.05; letter-spacing: -.055em; color: #eefcff; }
+  h1 span { color: #67e8f9; }
+  .hero-description { margin-top: 1.5rem; max-width: 34rem; font-size: clamp(1.05rem, 2.2vw, 1.3rem); line-height: 1.65; color: #b6c6ca; }
+  .hero-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-top: 2rem; }
+  .hero-links a { display: grid; grid-template-columns: 1fr auto; gap: .35rem; padding: 1rem; border: 1px solid rgb(216 247 249 / 18%); border-radius: 14px; background: rgb(216 247 249 / 5%); font-weight: 600; font-size: 1rem; }
+  .hero-links a > span:first-child { grid-column: 1 / -1; font-size: .75rem; font-weight: 400; color: #a1b8bc; }
+  .hero-links a:hover { background: rgb(103 232 249 / 12%); border-color: #67e8f9; }
+  a:focus-visible, button:focus-visible { outline: 2px solid #67e8f9; outline-offset: 4px; }
+  .scene-control { min-height: 3rem; margin-top: 1.25rem; }
+  .scene-control button { color: #b7f2fa; font-size: .85rem; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+  .scene-control p { color: #9caeb3; font-size: .8rem; line-height: 1.5; }
+  .hero-scene { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+  progressive-hero[data-ready] .hero-scene { opacity: 1; pointer-events: auto; cursor: none; }
+  @media (max-width: 480px) { .hero-intro { padding-top: 2rem; } .hero-links { gap: .5rem; } .hero-links a { padding: .8rem .65rem; font-size: .9rem; } }
+</style>
