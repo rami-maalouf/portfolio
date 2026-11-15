@@ -136,7 +136,7 @@ const {
       </div>
     </header>
     <!-- scrollable content -->
-    <div class={'pt-20 mb-28 blur-bg flex mx-auto justify-center max-w-7xl px-5 sm:px-6 lg:px-8 w-full' + ' ' + _class}>
+    <div class={'pt-20 blur-bg flex mx-auto justify-center max-w-7xl px-5 sm:px-6 lg:px-8 w-full' + (fullScreen ? ' mb-10' : ' mb-28') + ' ' + _class}>
       <main class={'flex flex-col' + (fullScreen ? ' w-full' : '')}>
         <slot />
       </main>
