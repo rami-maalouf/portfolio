@@ -1,52 +1,29 @@
-import { Component, type ErrorInfo, type ReactNode, Suspense, type HTMLAttributes } from "react";
-import "@lib/setupThree";
-import HeroScene from "./HeroScene";
-import Loading from "./Loading";
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import StudioScene from "./StudioScene";
 
-interface HeroSceneProps extends Omit<HTMLAttributes<HTMLDivElement>, "onError"> {
-  fallback?: JSX.Element;
-  onReady?: () => void;
-  onError?: () => void;
+interface StudioProps {
+  onReady: () => void;
+  onError: () => void;
+  onExplore: () => void;
 }
 
-interface ErrorBoundaryState {
-  error: Error | null;
-}
+class SceneErrorBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
+  state = { failed: false };
 
-class SceneErrorBoundary extends Component<{ children: ReactNode; onError?: () => void }, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { error: null };
-
-  static getDerivedStateFromError(error: Error) {
-    return { error };
-  }
+  static getDerivedStateFromError() { return { failed: true }; }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Hero scene failed to load:", error, info);
-    this.props.onError?.();
+    console.error("Studio scene failed to load:", error, info);
+    this.props.onError();
   }
 
-  render() {
-    if (this.state.error) {
-      return (
-        <div className="flex min-h-[50vh] items-center justify-center p-8 text-center text-cyan-200">
-          <p>3D scene failed to load. Try refreshing the page.</p>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
+  render() { return this.state.failed ? null : this.props.children; }
 }
 
-export default function SceneSuspenseWrapper(props: HeroSceneProps) {
-  const { children, fallback, onError, onReady, ...rest } = props;
+export default function SceneSuspenseWrapper({ onError, onReady, onExplore }: StudioProps) {
   return (
     <SceneErrorBoundary onError={onError}>
-      <div className="relative h-full w-full">
-        <Suspense fallback={onReady ? null : (fallback ?? <Loading />)}>
-          <HeroScene {...rest} onReady={onReady} />
-        </Suspense>
-      </div>
+      <StudioScene onReady={onReady} onExplore={onExplore} />
     </SceneErrorBoundary>
   );
 }
