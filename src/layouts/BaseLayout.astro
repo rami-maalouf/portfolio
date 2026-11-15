@@ -117,7 +117,7 @@ const {
     <!-- </div>
     </div> -->
     <NavLinks client:idle />
-    <div class="fixed z-30 bottom-0 w-full px-4 sm:px-6 lg:px-8 pb-[env(safe-area-inset-bottom)]">
+    <div class="pointer-events-none fixed z-30 bottom-0 w-full px-4 sm:px-6 lg:px-8 pb-[env(safe-area-inset-bottom)]">
       <div class="mx-auto max-w-2xl lg:max-w-5xl">
         <ExternalLinks />
       </div>
@@ -136,7 +136,7 @@ const {
       </div>
     </header>
     <!-- scrollable content -->
-    <div class={'pt-20 mb-10 blur-bg flex mx-auto justify-center max-w-7xl px-5 sm:px-6 lg:px-8 w-full' + ' ' + _class}>
+    <div class={'pt-20 mb-28 blur-bg flex mx-auto justify-center max-w-7xl px-5 sm:px-6 lg:px-8 w-full' + ' ' + _class}>
       <main class={'flex flex-col' + (fullScreen ? ' w-full' : '')}>
         <slot />
       </main>

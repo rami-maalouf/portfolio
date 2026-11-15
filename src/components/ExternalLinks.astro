@@ -1,48 +1,194 @@
 ---
 import { Icon } from "astro-icon";
 import { externalFooterLinks } from "@lib/constants";
+
+const labels = ["GitHub", "YouTube", "LinkedIn", "Email", "Strava", "TikTok", "X", "Instagram", "Substack"];
 ---
 
-<footer class="w-full flex">
-  <div
-    id="external-links"
-    class="mx-auto flex flex-row flex-wrap items-center bg-transparent justify-center gap-3 sm:gap-6"
-  >
+<footer class="social-footer" aria-label="Social links">
+  <social-dock id="external-links">
     {
-      externalFooterLinks.map(({ name, iconName, href }) => (
-        <a
-          href={href}
-          target="_blank"
-          aria-label={name}
-          rel="noopener noreferrer"
-          class={`w-5 h-5 sm:w-6 sm:h-6 ${name.toLowerCase().includes("substack") && "p-0.5"}`}
-        >
-          <Icon name={iconName.replace(":", "/")} />
+      externalFooterLinks.map(({ name, iconName, href }, index) => (
+        <a href={href} target="_blank" aria-label={name} rel="noopener noreferrer" class="dock-link">
+          <span class="dock-label" aria-hidden="true">{labels[index]}</span>
+          <span class:list={["dock-icon", { "dock-icon-inset": iconName === "simple-icons:substack" }]}>
+            <Icon name={iconName.replace(":", "/")} />
+          </span>
         </a>
       ))
     }
-  </div>
+  </social-dock>
 </footer>
-<style lang="scss">
-  /* animation when page loads: move the element with id = "external-links" from behind the screen to the right delay each child's animation*/
 
-  @for $i from 1 through 5 {
-    #external-links > a:nth-child(#{$i}n) {
-      animation: moveFromBehind 0.5s ease-in-out forwards;
-      visibility: hidden;
-      animation-delay: #{$i * 0.08}s;
+<script>
+  class SocialDock extends HTMLElement {
+    private cleanup?: () => void;
+
+    connectedCallback() {
+      const links = Array.from(this.querySelectorAll<HTMLAnchorElement>(".dock-link"));
+      const motion = matchMedia("(prefers-reduced-motion: reduce)");
+      const pointer = matchMedia("(hover: hover) and (pointer: fine) and (min-width: 680px)");
+      const controller = new AbortController();
+      const { signal } = controller;
+      const base = 44;
+      const sizes = links.map(() => base);
+      let targets = [...sizes];
+      let frame = 0;
+      let previousTime = 0;
+      let hovering = false;
+
+      const tick = (time: number) => {
+        const dt = previousTime ? Math.min((time - previousTime) / 1000, 0.05) : 1 / 60;
+        previousTime = time;
+        let moving = false;
+        links.forEach((link, index) => {
+          sizes[index] += (targets[index] - sizes[index]) * (1 - Math.exp(-22 * dt));
+          if (Math.abs(targets[index] - sizes[index]) < 0.05) sizes[index] = targets[index];
+          else moving = true;
+          link.style.setProperty("--size", `${sizes[index]}px`);
+        });
+        frame = moving ? requestAnimationFrame(tick) : 0;
+        if (!moving) previousTime = 0;
+      };
+
+      const magnify = (position: number | null) => {
+        if (!pointer.matches || motion.matches) return;
+        targets = links.map((_, index) => {
+          const distance = position === null ? 3 : Math.abs(index - position);
+          return base + (distance < 2.5 ? 36 * (1 + Math.cos(Math.PI * distance / 2.5)) / 2 : 0);
+        });
+        if (!frame) frame = requestAnimationFrame(tick);
+      };
+
+      const focusedPosition = () => {
+        const index = links.indexOf(document.activeElement as HTMLAnchorElement);
+        return index < 0 ? null : index;
+      };
+
+      this.addEventListener("pointermove", (event) => {
+        if (event.pointerType === "touch" || !pointer.matches || motion.matches) return;
+        hovering = true;
+        const centers = links.map((link) => {
+          const rect = link.getBoundingClientRect();
+          return { center: rect.left + rect.width / 2, width: rect.width };
+        });
+        let closest = 0;
+        centers.forEach((item, index) => {
+          if (Math.abs(item.center - event.clientX) < Math.abs(centers[closest].center - event.clientX)) closest = index;
+        });
+        magnify(closest + (event.clientX - centers[closest].center) / (centers[closest].width + 4));
+      }, { signal });
+
+      this.addEventListener("pointerleave", () => {
+        hovering = false;
+        magnify(focusedPosition());
+      }, { signal });
+      this.addEventListener("focusin", () => magnify(focusedPosition()), { signal });
+      this.addEventListener("focusout", () => {
+        queueMicrotask(() => { if (!hovering) magnify(focusedPosition()); });
+      }, { signal });
+
+      const reset = () => {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        previousTime = 0;
+        hovering = false;
+        targets = links.map(() => base);
+        links.forEach((link, index) => {
+          sizes[index] = base;
+          link.style.removeProperty("--size");
+        });
+      };
+      pointer.addEventListener("change", reset, { signal });
+      motion.addEventListener("change", reset, { signal });
+      this.cleanup = () => { controller.abort(); reset(); };
     }
+
+    disconnectedCallback() { this.cleanup?.(); }
   }
-  @keyframes moveFromBehind {
-    0% {
-      opacity: 0;
-      transform: translateY(100%);
-    }
 
-    100% {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(0);
-    }
+  if (!customElements.get("social-dock")) customElements.define("social-dock", SocialDock);
+</script>
+
+<style>
+  .social-footer { display: flex; justify-content: center; }
+  social-dock {
+    pointer-events: auto;
+    --base-size: 44px;
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 88px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+  social-dock::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: auto 0 0;
+    height: 60px;
+    border: 1px solid rgb(216 247 249 / 18%);
+    border-radius: 20px;
+    background: linear-gradient(155deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 4%)), rgb(18 24 30 / 72%);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 25%), inset 0 1px 0 rgb(255 255 255 / 10%);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+  }
+  .dock-link {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: var(--size, var(--base-size));
+    height: var(--size, 44px);
+    padding: 8px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    color: rgb(216 247 249);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dock-icon { display: block; width: 100%; aspect-ratio: 1; }
+  .dock-icon :global(svg) { display: block; width: 100%; height: 100%; }
+  .dock-icon-inset { padding: 2px; }
+  .dock-link:hover { color: white; }
+  .dock-link:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; background: rgb(103 232 249 / 12%); }
+  .dock-link:active .dock-icon { opacity: 0.65; }
+  .dock-label {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    padding: 5px 10px;
+    border: 1px solid rgb(255 255 255 / 15%);
+    border-radius: 7px;
+    background: rgb(28 32 38 / 95%);
+    box-shadow: 0 3px 12px rgb(0 0 0 / 18%);
+    color: #f6fbff;
+    font: 500 12px/1.4 system-ui, sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 120ms ease, transform 120ms ease, visibility 120ms;
+  }
+  .dock-link:hover .dock-label, .dock-link:focus-visible .dock-label {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  @media (max-width: 679px) {
+    social-dock { --base-size: clamp(24px, calc((100vw - 72px) / 9), 44px); gap: 2px; padding-inline: 6px; margin-bottom: 8px; }
+    .dock-link { padding: 6px; }
+    social-dock::before { border-radius: 16px; }
+  }
+  @media (hover: none) {
+    .dock-link:hover .dock-label { opacity: 0; visibility: hidden; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dock-label { transition: none; }
   }
 </style>
